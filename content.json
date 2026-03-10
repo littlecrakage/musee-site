@@ -1,0 +1,128 @@
+{
+  "site": {
+    "title": "Musée Petit Ours Brun",
+    "subtitle": "L'aventure des petits commence ici !",
+    "hero_text": "Plonge dans l'univers magique de Petit Ours Brun ! Découvre ses jouets, ses histoires et ses aventures du quotidien dans un musée pensé pour les enfants.",
+    "about": "Le Musée Petit Ours Brun est un espace d'éveil et de découverte unique, entièrement dédié au personnage créé par Marie Aubinais. Venez partager des moments inoubliables en famille, explorer les univers colorés de Petit Ours Brun et laisser vos enfants s'émerveiller !"
+  },
+  "highlights": [
+    {
+      "title": "Exposition interactive",
+      "text": "Touche, joue et explore les décors grandeur nature de Petit Ours Brun.",
+      "icon": "🎨",
+      "visible": true
+    },
+    {
+      "title": "Atelier créatif",
+      "text": "Dessine, colorie et crée tes propres histoires avec Petit Ours Brun.",
+      "icon": "✏️",
+      "visible": true
+    },
+    {
+      "title": "Entrée gratuite",
+      "text": "La visite est entièrement gratuite pour toute la famille. Réservation recommandée.",
+      "icon": "🎁",
+      "visible": true
+    },
+    {
+      "title": "Spectacle vivant",
+      "text": "Des animations et spectacles pour les enfants tous les week-ends.",
+      "icon": "🎭",
+      "visible": true
+    },
+    {
+      "title": "Espace lecture",
+      "text": "Retrouvez tous les albums de Petit Ours Brun dans notre coin lecture douillet.",
+      "icon": "📚",
+      "visible": true
+    },
+    {
+      "title": "Adapté aux tout-petits",
+      "text": "Pensé pour les enfants de 1 à 6 ans, avec des espaces sécurisés et accessibles.",
+      "icon": "🐻",
+      "visible": true
+    }
+  ],
+  "booking": {
+    "text": "La visite est gratuite ! Réservez votre créneau pour garantir votre place.",
+    "available_days": [
+      "Mercredi",
+      "Samedi",
+      "Dimanche"
+    ],
+    "time_slots": [
+      "10h00",
+      "11h00",
+      "14h00",
+      "15h00",
+      "16h00"
+    ],
+    "max_per_slot": 15
+  },
+  "sections": [
+    {
+      "id": "hero",
+      "label": "Héro & accroche",
+      "icon": "🦸",
+      "visible": true
+    },
+    {
+      "id": "booking",
+      "label": "Réservation",
+      "icon": "📅",
+      "visible": true
+    },
+    {
+      "id": "gallery",
+      "label": "Galerie photos",
+      "icon": "📸",
+      "visible": true
+    },
+    {
+      "id": "about",
+      "label": "À propos",
+      "icon": "🏛️",
+      "visible": true
+    },
+    {
+      "id": "highlights",
+      "label": "Points forts",
+      "icon": "✨",
+      "visible": true
+    },
+    {
+      "id": "cta",
+      "label": "Appel à l'action",
+      "icon": "🐻",
+      "visible": true
+    }
+  ],
+  "images": {
+    "hero_bear": "20260309_143413_Petit-Ours-Brun-Music.png",
+    "logo": "20260309_144307_Petit-Ours-Brun-Hello-Little-Bear.png",
+    "about": null,
+    "cta_bear": "20260309_144837_petit-ours-brun-300x300.png"
+  },
+  "social": {
+    "instagram_handle": "petitoursbrun",
+    "hashtag": "#petitoursbrun"
+  },
+  "footer": {
+    "address": "12 rue de la Forêt\r\n75001 Paris",
+    "phone": "01 23 45 67 89",
+    "email": "contact@musee-petitoursbrun.fr",
+    "hours": {
+      "Lundi": "Fermé",
+      "Mardi": "Fermé",
+      "Mercredi": "10h – 18h",
+      "Jeudi": "Fermé",
+      "Vendredi": "Fermé",
+      "Samedi": "9h – 19h",
+      "Dimanche": "10h – 18h"
+    },
+    "hours_special": {
+      "Vacances scolaires": "10h – 18h (tous les jours)",
+      "Jours fériés": "10h – 17h"
+    }
+  }
+}

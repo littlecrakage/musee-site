@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}{{ c.site.title }}{% endblock %}</title>
+  <meta name="description" content="{{ c.site.subtitle }}" />
+
+  <!-- Google Fonts: Fredoka One (headings) + Nunito (body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+  <!-- ── NAV ──────────────────────────────────────────────────── -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="{{ url_for('index') }}" class="nav-brand">
+        {% if c.images is defined and c.images.logo %}
+        <img src="{{ url_for('static', filename='uploads/images/' + c.images.logo) }}"
+             alt="Logo" class="nav-logo-img"/>
+        {% else %}
+        <span class="bear-icon">🐻</span>
+        {% endif %}
+        <span>{{ c.site.title }}</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#decouvrir">Découvrir</a></li>
+        <li><a href="#reserver">Réserver</a></li>
+        <li><a href="#photos">Photos</a></li>
+        <li><a href="#footer">Infos pratiques</a></li>
+      </ul>
+      <a href="#reserver" class="btn btn-primary nav-cta">Réserver</a>
+      <button class="nav-burger" id="navBurger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <!-- Mobile menu -->
+    <div class="nav-mobile" id="navMobile">
+      <a href="#decouvrir" onclick="closeMenu()">Découvrir</a>
+      <a href="#reserver" onclick="closeMenu()">Réserver</a>
+      <a href="#photos" onclick="closeMenu()">Photos</a>
+      <a href="#footer" onclick="closeMenu()">Infos pratiques</a>
+    </div>
+  </nav>
+
+  <!-- ── CONTENT ───────────────────────────────────────────────── -->
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- ── FOOTER ────────────────────────────────────────────────── -->
+  <footer class="footer" id="footer">
+    <div class="footer-inner">
+      <div class="footer-col">
+        <div class="footer-brand">
+          {% if c.images is defined and c.images.logo %}
+          <img src="{{ url_for('static', filename='uploads/images/' + c.images.logo) }}"
+               alt="Logo" class="footer-logo-img"/>
+          {% else %}
+          <span class="bear-icon">🐻</span>
+          {% endif %}
+          <span>{{ c.site.title }}</span>
+        </div>
+        <p class="footer-about">{{ c.site.subtitle }}</p>
+      </div>
+
+      <div class="footer-col">
+        <h3>Adresse</h3>
+        <p>{{ c.footer.address | replace('\n', '<br>') | safe }}</p>
+        {% if c.footer.phone %}
+          <p>📞 {{ c.footer.phone }}</p>
+        {% endif %}
+        {% if c.footer.email %}
+          <p>✉️ <a href="mailto:{{ c.footer.email }}">{{ c.footer.email }}</a></p>
+        {% endif %}
+      </div>
+
+      <div class="footer-col">
+        <h3>Horaires d'ouverture</h3>
+        <table class="hours-table">
+          {% for day, hours in c.footer.hours.items() %}
+          <tr class="{% if hours == 'Fermé' %}closed{% endif %}">
+            <td>{{ day }}</td>
+            <td>{{ hours }}</td>
+          </tr>
+          {% endfor %}
+        </table>
+        {% if c.footer.hours_special %}
+        <table class="hours-table hours-table-special">
+          <tr><td colspan="2" class="hours-special-title">Horaires spéciaux</td></tr>
+          {% for label, hours in c.footer.hours_special.items() %}
+          <tr>
+            <td>{{ label }}</td>
+            <td>{{ hours }}</td>
+          </tr>
+          {% endfor %}
+        </table>
+        {% endif %}
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© {{ 2025 }} {{ c.site.title }} — Entrée gratuite</p>
+      <p><a href="{{ url_for('admin_login') }}">Admin</a></p>
+    </div>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

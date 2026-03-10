@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Réservation confirmée — {{ c.site.title }}{% endblock %}
+
+{% block content %}
+<section class="success-page">
+  <div class="container">
+    <div class="success-card">
+      <div class="success-bear">🐻</div>
+      <div class="success-check">✅</div>
+      <h1>C'est noté !</h1>
+      <p class="success-subtitle">Votre visite est confirmée.</p>
+
+      <!-- Reference badge -->
+      <div class="success-ref-badge">
+        <span class="success-ref-label">Numéro de réservation</span>
+        <span class="success-ref-code">{{ reference }}</span>
+      </div>
+
+      <!-- Details -->
+      <div class="success-details">
+        <div class="success-detail">
+          <span class="detail-icon">👤</span>
+          <div><strong>{{ name }}</strong></div>
+        </div>
+        <div class="success-detail">
+          <span class="detail-icon">📅</span>
+          <div><strong>{{ visit_date }}</strong></div>
+        </div>
+        <div class="success-detail">
+          <span class="detail-icon">🕐</span>
+          <div><strong>{{ time_slot }}</strong></div>
+        </div>
+        <div class="success-detail">
+          <span class="detail-icon">👥</span>
+          <div><strong>{{ num_people }} personne{% if num_people > 1 %}s{% endif %}</strong></div>
+        </div>
+      </div>
+
+      <!-- QR code -->
+      <div class="success-qr">
+        <p class="success-qr-label">🎟️ Votre QR code d'entrée</p>
+        <div class="success-qr-frame">
+          <img src="data:image/png;base64,{{ qr_b64 }}"
+               alt="QR Code {{ reference }}"
+               class="success-qr-img"/>
+        </div>
+        <p class="success-qr-hint">Présentez ce QR code à l'entrée du musée</p>
+      </div>
+
+      <!-- Address -->
+      <div class="success-address">
+        <h3>📍 Où nous trouver ?</h3>
+        <p>{{ c.footer.address | replace('\n', '<br>') | safe }}</p>
+        {% if c.footer.phone %}<p>📞 {{ c.footer.phone }}</p>{% endif %}
+      </div>
+
+      <p class="success-note">
+        🎁 L'entrée est <strong>totalement gratuite</strong>.<br>
+        À très bientôt pour une belle aventure !
+      </p>
+
+      <a href="{{ url_for('index') }}" class="btn btn-primary btn-large">
+        ← Retour à l'accueil
+      </a>
+    </div>
+  </div>
+</section>
+{% endblock %}

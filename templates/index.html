@@ -1,0 +1,313 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% for section in c.sections %}
+{% if section.visible %}
+
+{# ══ HERO ══════════════════════════════════════════════════════ #}
+{% if section.id == 'hero' %}
+<section class="hero">
+  <div class="hero-bubbles">
+    <div class="bubble b1"></div><div class="bubble b2"></div>
+    <div class="bubble b3"></div><div class="bubble b4"></div>
+  </div>
+  <div class="hero-inner">
+    <div class="hero-text">
+      <div class="hero-badge">🎁 Entrée gratuite</div>
+      <h1 class="hero-title">{{ c.site.title }}</h1>
+      <p class="hero-subtitle">{{ c.site.subtitle }}</p>
+      <p class="hero-desc">{{ c.site.hero_text }}</p>
+      <div class="hero-actions">
+        <a href="#reserver" class="btn btn-primary btn-large">Réserver ma visite</a>
+        <a href="#decouvrir" class="btn btn-ghost btn-large">En savoir plus</a>
+      </div>
+    </div>
+    <div class="hero-bear">
+      {% if c.images is defined and c.images.hero_bear %}
+      <img src="{{ url_for('static', filename='uploads/images/' + c.images.hero_bear) }}"
+           alt="Petit Ours Brun" class="hero-bear-img"/>
+      {% else %}
+      <div class="bear-scene">
+        <div class="bear-body">
+          <div class="bear-ear left"></div>
+          <div class="bear-ear right"></div>
+          <div class="bear-face">
+            <div class="bear-eye left"></div>
+            <div class="bear-eye right"></div>
+            <div class="bear-nose"></div>
+            <div class="bear-mouth"></div>
+          </div>
+          <div class="bear-tummy"></div>
+        </div>
+        <div class="bear-shadow"></div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  <div class="hero-wave">
+    <svg viewBox="0 0 1440 80" preserveAspectRatio="none">
+      <path d="M0,40 C360,80 1080,0 1440,40 L1440,80 L0,80 Z" fill="#FFF8E7"/>
+    </svg>
+  </div>
+</section>
+{% endif %}
+
+{# ══ À PROPOS ══════════════════════════════════════════════════ #}
+{% if section.id == 'about' %}
+<section class="about" id="decouvrir">
+  <div class="container">
+    {% if c.images is defined and c.images.about %}
+    <div class="about-inner">
+      <div class="about-text">
+        <div class="section-tag">Notre musée</div>
+        <h2 class="section-title">Bienvenue dans l'univers<br>de Petit Ours Brun !</h2>
+        <p class="section-desc">{{ c.site.about }}</p>
+      </div>
+      <div class="about-image">
+        <img src="{{ url_for('static', filename='uploads/images/' + c.images.about) }}"
+             alt="Musée Petit Ours Brun"/>
+      </div>
+    </div>
+    {% else %}
+    <div class="section-tag">Notre musée</div>
+    <h2 class="section-title">Bienvenue dans l'univers<br>de Petit Ours Brun !</h2>
+    <p class="section-desc">{{ c.site.about }}</p>
+    {% endif %}
+  </div>
+</section>
+{% endif %}
+
+{# ══ HIGHLIGHTS ════════════════════════════════════════════════ #}
+{% if section.id == 'highlights' %}
+<section class="highlights">
+  <div class="container">
+    <div class="section-tag">Ce qui vous attend</div>
+    <h2 class="section-title">Des expériences pour toute la famille</h2>
+    <div class="highlights-grid">
+      {% for hl in c.highlights if hl.get('visible', true) %}
+      <div class="highlight-card">
+        <div class="highlight-icon">{{ hl.icon }}</div>
+        <h3>{{ hl.title }}</h3>
+        <p>{{ hl.text }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{# ══ BOOKING ═══════════════════════════════════════════════════ #}
+{% if section.id == 'booking' %}
+<section class="booking" id="reserver">
+  <div class="booking-wave-top">
+    <svg viewBox="0 0 1440 80" preserveAspectRatio="none">
+      <path d="M0,40 C360,0 1080,80 1440,40 L1440,0 L0,0 Z" fill="#FFF8E7"/>
+    </svg>
+  </div>
+  <div class="container">
+    <div class="section-tag light">Réservation</div>
+    <h2 class="section-title light">Réservez votre visite gratuite</h2>
+    <p class="section-desc light">{{ c.booking.text }}</p>
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      {% for msg in messages %}
+      <div class="booking-flash">⚠️ {{ msg }}</div>
+      {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <div class="booking-form-card">
+      <form id="bookingForm" method="POST" action="{{ url_for('booking') }}">
+        <div class="booking-step">
+          <div class="booking-step-num">1</div>
+          <div class="booking-step-body">
+            <label class="booking-label">Choisissez une date
+              <span class="booking-hint">Ouvert : {{ c.booking.available_days | join(', ') }}</span>
+            </label>
+            <input type="date" name="visit_date" id="visitDate" required
+                   class="booking-date-input"
+                   data-available-days='{{ c.booking.available_days | tojson }}'/>
+            <p class="booking-day-error" id="dayError" style="display:none">
+              ❌ Le musée est fermé ce jour. Choisissez un jour d'ouverture.
+            </p>
+          </div>
+        </div>
+        <div class="booking-step" id="slotStep" style="display:none">
+          <div class="booking-step-num">2</div>
+          <div class="booking-step-body">
+            <label class="booking-label">Choisissez un créneau</label>
+            <div class="slot-grid" id="slotGrid"></div>
+            <input type="hidden" name="time_slot" id="timeSlotInput"/>
+          </div>
+        </div>
+        <div class="booking-step" id="infoStep" style="display:none">
+          <div class="booking-step-num">3</div>
+          <div class="booking-step-body">
+            <label class="booking-label">Vos informations</label>
+            <div class="booking-fields">
+              <div class="form-group">
+                <label>Prénom et nom *</label>
+                <input type="text" name="name" placeholder="Marie Dupont" required/>
+              </div>
+              <div class="form-group">
+                <label>Email *</label>
+                <input type="email" name="email" placeholder="marie@email.fr" required/>
+              </div>
+              <div class="form-group">
+                <label>Téléphone</label>
+                <input type="tel" name="phone" placeholder="06 12 34 56 78"/>
+              </div>
+              <div class="form-group">
+                <label>Nombre de personnes *</label>
+                <input type="number" name="num_people" value="2" min="1"
+                       max="{{ c.booking.max_per_slot }}" required/>
+              </div>
+              <div class="form-group full">
+                <label>Message (optionnel)</label>
+                <textarea name="message" rows="2"
+                          placeholder="Enfant en bas âge, poussette, accessibilité…"></textarea>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-light btn-large booking-submit">
+              ✅ Confirmer ma réservation gratuite
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="booking-wave-bottom">
+    <svg viewBox="0 0 1440 80" preserveAspectRatio="none">
+      <path d="M0,40 C360,80 1080,0 1440,40 L1440,80 L0,80 Z" fill="#FFF8E7"/>
+    </svg>
+  </div>
+</section>
+{% endif %}
+
+{# ══ GALLERY ════════════════════════════════════════════════════ #}
+{% if section.id == 'gallery' %}
+<section class="gallery-section" id="photos">
+  <div class="container">
+    <div class="section-tag">Galerie photos</div>
+    <h2 class="section-title">Nos aventures en images</h2>
+    {% if photos %}
+    <div class="gallery-grid">
+      {% for photo in photos %}
+      <div class="gallery-item">
+        <img src="{{ url_for('static', filename='uploads/gallery/' + photo.filename) }}"
+             alt="{{ photo.caption or 'Photo du musée' }}" loading="lazy"/>
+        {% if photo.caption %}
+        <div class="gallery-caption">{{ photo.caption }}</div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="gallery-empty">
+      <div class="gallery-empty-icon">📸</div>
+      <p>Les photos arrivent bientôt !<br>
+         Ajoutez des photos depuis l'<a href="{{ url_for('admin_login') }}">espace admin</a>.</p>
+    </div>
+    {% endif %}
+    {% if c.social.instagram_handle %}
+    <div class="gallery-follow">
+      <a href="https://instagram.com/{{ c.social.instagram_handle }}"
+         class="btn btn-social instagram" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+          <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+        </svg>
+        Suivez-nous @{{ c.social.instagram_handle }}
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endif %}
+
+{# ══ CTA BAND ═══════════════════════════════════════════════════ #}
+{% if section.id == 'cta' %}
+<section class="cta-band">
+  <div class="container">
+    <div class="cta-band-inner">
+      {% if c.images is defined and c.images.cta_bear %}
+      <img src="{{ url_for('static', filename='uploads/images/' + c.images.cta_bear) }}"
+           alt="Petit Ours Brun" class="cta-bear-img"/>
+      {% else %}
+      <span class="cta-bear">🐻</span>
+      {% endif %}
+      <div>
+        <h2>Prêts pour l'aventure ?</h2>
+        <p>La visite est gratuite, les souvenirs sont pour la vie !</p>
+      </div>
+      <a href="#reserver" class="btn btn-primary btn-large">Réserver ma visite</a>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% endif %}{# end if visible #}
+{% endfor %}{# end sections loop #}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const DAY_NAMES_FR = ["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"];
+const JS_DAY_MAP   = {"Lundi":1,"Mardi":2,"Mercredi":3,"Jeudi":4,"Vendredi":5,"Samedi":6,"Dimanche":0};
+
+const visitDateInput = document.getElementById('visitDate');
+if (visitDateInput) {
+  const slotStep      = document.getElementById('slotStep');
+  const infoStep      = document.getElementById('infoStep');
+  const slotGrid      = document.getElementById('slotGrid');
+  const timeSlotInput = document.getElementById('timeSlotInput');
+  const dayError      = document.getElementById('dayError');
+
+  visitDateInput.setAttribute('min', new Date().toISOString().split('T')[0]);
+
+  const availableDays = JSON.parse(visitDateInput.dataset.availableDays || '[]');
+  const openWeekdays  = availableDays.map(d => JS_DAY_MAP[d]).filter(d => d !== undefined);
+
+  visitDateInput.addEventListener('change', async () => {
+    const dateStr = visitDateInput.value;
+    if (!dateStr) return;
+    const weekday = new Date(dateStr + 'T00:00:00').getDay();
+
+    if (!openWeekdays.includes(weekday)) {
+      dayError.style.display = 'block';
+      slotStep.style.display = 'none';
+      infoStep.style.display = 'none';
+      return;
+    }
+    dayError.style.display = 'none';
+    slotGrid.innerHTML = '<p class="slot-loading">Chargement des créneaux…</p>';
+    slotStep.style.display = 'flex';
+    infoStep.style.display = 'none';
+    timeSlotInput.value = '';
+
+    const slots = await fetch(`/api/slots?date=${dateStr}`).then(r => r.json());
+    if (!slots.length) {
+      slotGrid.innerHTML = '<p class="slot-full">😔 Aucun créneau disponible pour cette date.</p>';
+      return;
+    }
+    slotGrid.innerHTML = slots.map(s => `
+      <button type="button" class="slot-btn" data-slot="${s.slot}">
+        <span class="slot-time">${s.slot}</span>
+        <span class="slot-remaining">${s.remaining} place${s.remaining > 1 ? 's' : ''}</span>
+      </button>`).join('');
+
+    slotGrid.querySelectorAll('.slot-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        slotGrid.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        timeSlotInput.value = btn.dataset.slot;
+        infoStep.style.display = 'flex';
+        infoStep.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      });
+    });
+  });
+}
+</script>
+{% endblock %}

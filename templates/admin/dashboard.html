@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin — Tableau de bord</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+</head>
+<body class="admin-body">
+
+  <!-- Sidebar -->
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar-brand">
+      <span>🐻</span><span>Admin</span>
+    </div>
+    <nav class="admin-nav">
+      <a href="#section-sections"    class="admin-nav-link">🗂️ Sections</a>
+      <a href="#section-images"      class="admin-nav-link">🖼️ Images</a>
+      <a href="#section-bookings"    class="admin-nav-link">📅 Réservations</a>
+      <a href="#section-gallery"     class="admin-nav-link">📸 Galerie</a>
+      <a href="#section-site"        class="admin-nav-link">🏠 Général</a>
+      <a href="#section-highlights"  class="admin-nav-link">✨ Points forts</a>
+      <a href="#section-booking-cfg" class="admin-nav-link">⚙️ Réservation</a>
+      <a href="#section-footer"      class="admin-nav-link">📍 Infos pratiques</a>
+    </nav>
+    <div class="admin-sidebar-footer">
+      <a href="{{ url_for('index') }}" class="admin-nav-link">👁 Voir le site</a>
+      <a href="{{ url_for('admin_logout') }}" class="admin-nav-link logout">🚪 Déconnexion</a>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="admin-main">
+    <header class="admin-header">
+      <h1>Tableau de bord</h1>
+      <p>Musée Petit Ours Brun</p>
+    </header>
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <div class="admin-flash">
+      {% for msg in messages %}
+      <div class="flash-msg">✅ {{ msg }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- ══ SECTION MANAGER ═════════════════════════════════════ -->
+    <section class="admin-section" id="section-sections">
+      <h2>🗂️ Ordre et visibilité des sections</h2>
+      <p style="font-size:.9rem;color:var(--text-mid);margin-bottom:1.25rem;">
+        Glissez-déposez pour réordonner. Cochez/décochez pour afficher ou masquer une section.
+      </p>
+
+      <form method="POST" action="{{ url_for('admin_save_sections') }}">
+        <input type="hidden" name="sections_json" id="sectionsJson"/>
+
+        <ul class="sections-sortable" id="sectionsList">
+          {% for s in c.sections %}
+          <li class="section-item" data-id="{{ s.id }}">
+            <span class="section-drag-handle" title="Glisser pour réordonner">⠿</span>
+            <span class="section-item-icon">{{ s.icon }}</span>
+            <span class="section-item-label">{{ s.label }}</span>
+            <label class="section-toggle" title="Afficher / Masquer">
+              <input type="checkbox" class="section-visible-cb"
+                     data-id="{{ s.id }}"
+                     {% if s.visible %}checked{% endif %}/>
+              <span class="section-toggle-track">
+                <span class="section-toggle-thumb"></span>
+              </span>
+            </label>
+            <span class="section-status-badge {% if s.visible %}visible{% else %}hidden{% endif %}">
+              {% if s.visible %}Visible{% else %}Masquée{% endif %}
+            </span>
+          </li>
+          {% endfor %}
+        </ul>
+
+        <div style="margin-top:1.5rem;">
+          <button type="submit" class="btn btn-primary">💾 Enregistrer l'ordre et la visibilité</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ══ IMAGES ════════════════════════════════════════════════ -->
+    <section class="admin-section" id="section-images">
+      <h2>🖼️ Images du site</h2>
+      <p style="font-size:.9rem;color:var(--text-mid);margin-bottom:1.5rem;">
+        Personnalisez les images affichées sur le site. Formats acceptés : JPG, PNG, WebP, GIF.
+      </p>
+
+      {% set img_slots = [
+        ("hero_bear", "Illustration héro (ours)",    "Remplace l'ours CSS animé dans la section héro."),
+        ("logo",      "Logo / icône de navigation",  "Remplace l'emoji 🐻 dans la barre de navigation et le pied de page."),
+        ("about",     "Photo « À propos »",          "Image affichée à côté du texte de présentation du musée."),
+        ("cta_bear",  "Image « Prêts pour l'aventure ? »", "Remplace l'emoji 🐻 dans le bandeau d'appel à l'action.")
+      ] %}
+
+      <div class="image-slots-grid">
+        {% for slot_id, slot_label, slot_hint in img_slots %}
+        {% set current = c.images.get(slot_id) if c.images is defined else none %}
+        <div class="image-slot-card">
+          <div class="image-slot-preview">
+            {% if current %}
+            <img src="{{ url_for('static', filename='uploads/images/' + current) }}"
+                 alt="{{ slot_label }}"/>
+            {% else %}
+            <div class="image-slot-empty">
+              <span>📷</span>
+              <p>Aucune image</p>
+            </div>
+            {% endif %}
+          </div>
+          <div class="image-slot-info">
+            <strong>{{ slot_label }}</strong>
+            <p class="image-slot-hint">{{ slot_hint }}</p>
+          </div>
+          <div class="image-slot-actions">
+            <form method="POST" action="{{ url_for('admin_images_upload') }}"
+                  enctype="multipart/form-data" class="image-upload-form">
+              <input type="hidden" name="slot" value="{{ slot_id }}"/>
+              <label class="btn btn-secondary image-upload-btn">
+                {% if current %}🔄 Changer{% else %}📤 Uploader{% endif %}
+                <input type="file" name="image" accept=".jpg,.jpeg,.png,.webp,.gif"
+                       onchange="this.form.submit()" style="display:none"/>
+              </label>
+            </form>
+            {% if current %}
+            <form method="POST" action="{{ url_for('admin_images_delete') }}"
+                  onsubmit="return confirm('Supprimer cette image ?')">
+              <input type="hidden" name="slot" value="{{ slot_id }}"/>
+              <button class="btn-mini btn-delete" title="Supprimer">🗑</button>
+            </form>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- ══ BOOKINGS ══════════════════════════════════════════════ -->
+    <section class="admin-section" id="section-bookings">
+      <h2>📅 Réservations
+        <span class="booking-count-badge">{{ bookings | selectattr('status', 'ne', 'cancelled') | list | length }}</span>
+      </h2>
+
+      {% if bookings %}
+      <!-- Filter tabs -->
+      <div class="booking-tabs">
+        <button class="btab active" data-filter="all">Toutes ({{ bookings|length }})</button>
+        <button class="btab" data-filter="pending">En attente ({{ bookings | selectattr('status','eq','pending') | list | length }})</button>
+        <button class="btab" data-filter="confirmed">Confirmées ({{ bookings | selectattr('status','eq','confirmed') | list | length }})</button>
+        <button class="btab" data-filter="cancelled">Annulées ({{ bookings | selectattr('status','eq','cancelled') | list | length }})</button>
+      </div>
+
+      <div class="bookings-table-wrap">
+        <table class="bookings-table">
+          <thead>
+            <tr>
+              <th>Réf.</th>
+              <th>Nom</th>
+              <th>Date</th>
+              <th>Créneau</th>
+              <th>Pers.</th>
+              <th>Email / Tél.</th>
+              <th>Message</th>
+              <th>Statut</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for b in bookings %}
+          <tr class="booking-row" data-status="{{ b.status }}">
+            <td><code class="booking-ref-cell">{{ b.reference or '—' }}</code></td>
+            <td><strong>{{ b.name }}</strong></td>
+            <td>{{ b.visit_date }}</td>
+            <td><span class="slot-tag">{{ b.time_slot }}</span></td>
+            <td>👥 {{ b.num_people }}</td>
+            <td>
+              <a href="mailto:{{ b.email }}">{{ b.email }}</a>
+              {% if b.phone %}<br><small>{{ b.phone }}</small>{% endif %}
+            </td>
+            <td><small>{{ b.message or '—' }}</small></td>
+            <td>
+              <span class="status-badge status-{{ b.status }}">
+                {% if b.status == 'pending' %}⏳ En attente
+                {% elif b.status == 'confirmed' %}✅ Confirmée
+                {% else %}❌ Annulée{% endif %}
+              </span>
+            </td>
+            <td class="booking-actions">
+              {% if b.status != 'confirmed' %}
+              <form method="POST" action="{{ url_for('admin_booking_status', booking_id=b.id) }}" style="display:inline">
+                <input type="hidden" name="status" value="confirmed"/>
+                <button class="btn-mini btn-confirm" title="Confirmer">✅</button>
+              </form>
+              {% endif %}
+              {% if b.status != 'cancelled' %}
+              <form method="POST" action="{{ url_for('admin_booking_status', booking_id=b.id) }}" style="display:inline">
+                <input type="hidden" name="status" value="cancelled"/>
+                <button class="btn-mini btn-cancel" title="Annuler">❌</button>
+              </form>
+              {% endif %}
+              <form method="POST" action="{{ url_for('admin_booking_delete', booking_id=b.id) }}"
+                    style="display:inline"
+                    onsubmit="return confirm('Supprimer définitivement cette réservation ?')">
+                <button class="btn-mini btn-delete" title="Supprimer">🗑</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      {% else %}
+      <div class="empty-state">
+        <p>📭 Aucune réservation pour le moment.</p>
+      </div>
+      {% endif %}
+    </section>
+
+    <!-- ══ GALLERY ═══════════════════════════════════════════════ -->
+    <section class="admin-section" id="section-gallery">
+      <h2>📸 Galerie photos</h2>
+
+      <!-- Upload form -->
+      <form method="POST" action="{{ url_for('admin_gallery_upload') }}"
+            enctype="multipart/form-data" class="gallery-upload-form">
+        <div class="gallery-upload-zone" id="uploadZone">
+          <div class="upload-icon">📤</div>
+          <p><strong>Glissez des photos ici</strong> ou cliquez pour choisir</p>
+          <p class="upload-hint">JPG, PNG, WebP, GIF — plusieurs fichiers acceptés</p>
+          <input type="file" name="photos" id="photoInput" multiple
+                 accept=".jpg,.jpeg,.png,.webp,.gif"/>
+        </div>
+        <div class="form-group" style="max-width:400px;margin-top:1rem">
+          <label>Légende (commune à toutes les photos uploadées)</label>
+          <input type="text" name="caption" placeholder="ex: Atelier créatif — Mars 2025"/>
+        </div>
+        <button type="submit" class="btn btn-primary">📤 Ajouter les photos</button>
+      </form>
+
+      <!-- Current gallery -->
+      {% if photos %}
+      <div class="gallery-admin-grid">
+        {% for photo in photos %}
+        <div class="gallery-admin-item">
+          <img src="{{ url_for('static', filename='uploads/gallery/' + photo.filename) }}"
+               alt="{{ photo.caption }}"/>
+          {% if photo.caption %}
+          <p class="gallery-admin-caption">{{ photo.caption }}</p>
+          {% endif %}
+          <form method="POST" action="{{ url_for('admin_gallery_delete', photo_id=photo.id) }}"
+                onsubmit="return confirm('Supprimer cette photo ?')">
+            <button class="gallery-delete-btn" title="Supprimer">🗑</button>
+          </form>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-state">
+        <p>📷 Aucune photo pour le moment. Commencez par en ajouter !</p>
+      </div>
+      {% endif %}
+    </section>
+
+    <form method="POST" action="{{ url_for('admin_save') }}">
+
+      <!-- ══ GÉNÉRAL ══════════════════════════════════════════════ -->
+      <section class="admin-section" id="section-site">
+        <h2>🏠 Informations générales</h2>
+        <div class="admin-grid">
+          <div class="form-group">
+            <label>Titre du site</label>
+            <input type="text" name="site_title" value="{{ c.site.title }}"/>
+          </div>
+          <div class="form-group">
+            <label>Sous-titre (slogan)</label>
+            <input type="text" name="site_subtitle" value="{{ c.site.subtitle }}"/>
+          </div>
+          <div class="form-group full">
+            <label>Texte héro (accroche principale)</label>
+            <textarea name="site_hero_text" rows="3">{{ c.site.hero_text }}</textarea>
+          </div>
+          <div class="form-group full">
+            <label>Présentation du musée</label>
+            <textarea name="site_about" rows="4">{{ c.site.about }}</textarea>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ POINTS FORTS ════════════════════════════════════════ -->
+      <section class="admin-section" id="section-highlights">
+        <h2>✨ Points forts (jusqu'à 6 cartes)</h2>
+        <div class="highlights-admin-grid">
+          {% for i in range(6) %}
+          {% set hl = c.highlights[i] if i < c.highlights|length else {"title":"","text":"","icon":"","visible":true} %}
+          {% set is_visible = hl.get('visible', true) %}
+          <div class="highlight-admin-card {% if not is_visible %}hac-hidden{% endif %}">
+            <div class="hac-number">{{ i + 1 }}</div>
+            <div class="hac-visibility">
+              <label class="hac-toggle" title="Afficher / Masquer cette carte">
+                <input type="checkbox" name="hl_visible_{{ i }}" value="1"
+                       {% if is_visible %}checked{% endif %}
+                       onchange="this.closest('.highlight-admin-card').classList.toggle('hac-hidden',!this.checked);this.nextElementSibling.textContent=this.checked?'Visible':'Masquée'"/>
+                <span class="hac-toggle-label">{% if is_visible %}Visible{% else %}Masquée{% endif %}</span>
+              </label>
+            </div>
+            <div class="form-group">
+              <label>Icône (emoji)</label>
+              <input type="text" name="hl_icon_{{ i }}" value="{{ hl.icon }}" placeholder="🎨" maxlength="4"/>
+            </div>
+            <div class="form-group">
+              <label>Titre</label>
+              <input type="text" name="hl_title_{{ i }}" value="{{ hl.title }}"/>
+            </div>
+            <div class="form-group">
+              <label>Description</label>
+              <textarea name="hl_text_{{ i }}" rows="2">{{ hl.text }}</textarea>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+
+      <!-- ══ CONFIG RÉSERVATION ══════════════════════════════════ -->
+      <section class="admin-section" id="section-booking-cfg">
+        <h2>⚙️ Configuration des réservations</h2>
+        <div class="admin-grid">
+          <div class="form-group full">
+            <label>Texte d'introduction</label>
+            <textarea name="booking_text" rows="2">{{ c.booking.text }}</textarea>
+          </div>
+          <div class="form-group">
+            <label>Capacité max par créneau (personnes)</label>
+            <input type="number" name="booking_max_per_slot"
+                   value="{{ c.booking.max_per_slot }}" min="1"/>
+          </div>
+          <div class="form-group">
+            <label>Créneaux horaires (un par ligne)</label>
+            <textarea name="booking_time_slots" rows="7"
+              placeholder="10h00&#10;11h00&#10;14h00">{{ c.booking.time_slots | join('\n') }}</textarea>
+          </div>
+          <div class="form-group full">
+            <label>Jours d'ouverture</label>
+            <div class="days-checkboxes">
+              {% set all_days = ["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"] %}
+              {% for day in all_days %}
+              <label class="day-check">
+                <input type="checkbox" name="booking_available_days" value="{{ day }}"
+                       {% if day in c.booking.available_days %}checked{% endif %}/>
+                {{ day }}
+              </label>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ INFOS PRATIQUES ════════════════════════════════════ -->
+      <section class="admin-section" id="section-footer">
+        <h2>📍 Infos pratiques</h2>
+        <div class="admin-grid">
+          <div class="form-group">
+            <label>Adresse</label>
+            <textarea name="footer_address" rows="3">{{ c.footer.address }}</textarea>
+          </div>
+          <div class="form-group">
+            <label>Téléphone</label>
+            <input type="text" name="footer_phone" value="{{ c.footer.phone }}"/>
+          </div>
+          <div class="form-group">
+            <label>Email de contact</label>
+            <input type="email" name="footer_email" value="{{ c.footer.email }}"/>
+          </div>
+        </div>
+
+        <h3 style="margin-top:2rem;">Horaires hebdomadaires</h3>
+        <div class="hours-admin-grid">
+          {% for day, hours in c.footer.hours.items() %}
+          <div class="form-group">
+            <label>{{ day }}</label>
+            <input type="text" name="hours_{{ day }}" value="{{ hours }}"
+                   placeholder="ex: 10h – 18h ou Fermé"/>
+          </div>
+          {% endfor %}
+        </div>
+
+        <h3 style="margin-top:2rem;">Horaires spéciaux</h3>
+        <p style="font-size:.88rem;color:var(--text-mid);margin-bottom:1rem;">
+          Vacances scolaires, jours fériés, événements…
+        </p>
+        <div class="hours-admin-grid">
+          {% for label, hours in c.footer.hours_special.items() %}
+          <div class="form-group">
+            <label>{{ label }}</label>
+            <input type="text" name="hours_special_{{ label }}" value="{{ hours }}"
+                   placeholder="ex: 10h – 18h ou Fermé"/>
+          </div>
+          {% endfor %}
+        </div>
+        <div class="admin-add-special">
+          <h4>Ajouter un horaire spécial</h4>
+          <div class="admin-add-special-row">
+            <div class="form-group">
+              <label>Intitulé</label>
+              <input type="text" name="new_special_label" placeholder="ex: Vacances de Noël"/>
+            </div>
+            <div class="form-group">
+              <label>Horaire</label>
+              <input type="text" name="new_special_value" placeholder="ex: 10h – 19h"/>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ SAVE ═══════════════════════════════════════════════ -->
+      <div class="admin-save-bar">
+        <button type="submit" class="btn btn-primary btn-large">
+          💾 Enregistrer toutes les modifications
+        </button>
+      </div>
+
+    </form>
+  </main>
+
+  <script>
+    // Sidebar smooth scroll
+    document.querySelectorAll('.admin-nav-link[href^="#"]').forEach(link => {
+      link.addEventListener('click', e => {
+        e.preventDefault();
+        const el = document.querySelector(link.getAttribute('href'));
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+
+    // Booking filter tabs
+    document.querySelectorAll('.btab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.btab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const filter = tab.dataset.filter;
+        document.querySelectorAll('.booking-row').forEach(row => {
+          row.style.display = (filter === 'all' || row.dataset.status === filter) ? '' : 'none';
+        });
+      });
+    });
+
+    // Upload zone drag & drop visual
+    const zone = document.getElementById('uploadZone');
+    const input = document.getElementById('photoInput');
+    if (zone && input) {
+      zone.addEventListener('click', () => input.click());
+      zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+      zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+      zone.addEventListener('drop', e => {
+        e.preventDefault();
+        zone.classList.remove('dragover');
+        input.files = e.dataTransfer.files;
+        zone.querySelector('p').textContent = `${input.files.length} fichier(s) sélectionné(s)`;
+      });
+      input.addEventListener('change', () => {
+        if (input.files.length) {
+          zone.querySelector('p').textContent = `${input.files.length} fichier(s) sélectionné(s)`;
+        }
+      });
+    }
+  </script>
+
+  <!-- SortableJS (sections drag & drop) -->
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+  <script>
+    const list = document.getElementById('sectionsList');
+    const jsonInput = document.getElementById('sectionsJson');
+
+    if (list && jsonInput) {
+      const sortable = Sortable.create(list, {
+        handle: '.section-drag-handle',
+        animation: 180,
+        ghostClass: 'section-item-ghost',
+        onEnd: syncJson,
+      });
+
+      // Sync visibility toggles
+      document.querySelectorAll('.section-visible-cb').forEach(cb => {
+        cb.addEventListener('change', () => {
+          const badge = cb.closest('.section-item').querySelector('.section-status-badge');
+          badge.textContent = cb.checked ? 'Visible' : 'Masquée';
+          badge.className   = 'section-status-badge ' + (cb.checked ? 'visible' : 'hidden');
+          syncJson();
+        });
+      });
+
+      function syncJson() {
+        const sections = [...list.querySelectorAll('.section-item')].map(li => ({
+          id:      li.dataset.id,
+          visible: li.querySelector('.section-visible-cb').checked,
+        }));
+        jsonInput.value = JSON.stringify(sections);
+      }
+
+      syncJson(); // initialise on load
+    }
+  </script>
+</body>
+</html>
