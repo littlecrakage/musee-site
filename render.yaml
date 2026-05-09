@@ -11,3 +11,5 @@ services:
         value: admin123
       - key: PYTHON_VERSION
         value: "3.11.0"
+      - key: RESEND_FROM
+        value: bot@crakage.com

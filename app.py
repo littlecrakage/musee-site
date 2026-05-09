@@ -3,16 +3,13 @@ import json
 import os
 import random
 import sqlite3
-import smtplib
 import string
 from datetime import datetime
-from email.mime.image import MIMEImage
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 from functools import wraps
 from io import BytesIO
 
 import qrcode
+import resend
 from flask import (
     Flask, render_template, request, redirect,
     url_for, session, flash, jsonify
@@ -140,63 +137,42 @@ def make_qr_base64(data: str) -> str:
     return base64.b64encode(buf.getvalue()).decode()
 
 
+def _resend_from(content):
+    return f"{content['site']['title']} <{os.getenv('RESEND_FROM', 'bot@crakage.com')}>"
+
+
 def send_confirmation_email(booking, qr_b64: str):
-    """Send a styled HTML confirmation email with embedded QR code."""
-    host = os.getenv("SMTP_HOST")
-    if not host:
+    api_key = os.getenv("RESEND_API_KEY")
+    if not api_key:
         return
     try:
+        resend.api_key = api_key
         content = load_content()
-        html = render_template(
-            "email/confirmation.html",
-            c=content,
-            booking=booking,
-        )
-
-        # Outer wrapper: related allows embedding inline images via CID
-        msg = MIMEMultipart("related")
-        msg["Subject"] = f"🐻 Confirmation de visite – {content['site']['title']}"
-        msg["From"]    = os.getenv("SMTP_FROM", os.getenv("SMTP_USER", ""))
-        msg["To"]      = booking["email"]
-
-        alt = MIMEMultipart("alternative")
-        alt.attach(MIMEText(html, "html", "utf-8"))
-        msg.attach(alt)
-
-        # Attach QR code as inline CID image
-        qr_bytes = base64.b64decode(qr_b64)
-        img = MIMEImage(qr_bytes, "png")
-        img.add_header("Content-ID", "<qrcode>")
-        img.add_header("Content-Disposition", "inline", filename="qrcode.png")
-        msg.attach(img)
-
-        with smtplib.SMTP(host, int(os.getenv("SMTP_PORT", 587)), timeout=10) as s:
-            s.starttls()
-            s.login(os.getenv("SMTP_USER", ""), os.getenv("SMTP_PASS", ""))
-            s.send_message(msg)
+        html = render_template("email/confirmation.html", c=content, booking=booking, qr_b64=qr_b64)
+        resend.Emails.send({
+            "from":    _resend_from(content),
+            "to":      [booking["email"]],
+            "subject": f"Confirmation de visite – {content['site']['title']}",
+            "html":    html,
+        })
     except Exception as e:
-        app.logger.warning(f"Email not sent: {e}")
+        app.logger.warning(f"Confirmation email not sent: {e}")
 
 
 def send_cancellation_email(booking):
-    """Send a cancellation notification email to the visitor."""
-    host = os.getenv("SMTP_HOST")
-    if not host:
+    api_key = os.getenv("RESEND_API_KEY")
+    if not api_key:
         return
     try:
+        resend.api_key = api_key
         content = load_content()
         html = render_template("email/cancellation.html", c=content, booking=booking)
-
-        msg = MIMEMultipart("alternative")
-        msg["Subject"] = f"Annulation de votre visite – {content['site']['title']}"
-        msg["From"]    = os.getenv("SMTP_FROM", os.getenv("SMTP_USER", ""))
-        msg["To"]      = booking["email"]
-        msg.attach(MIMEText(html, "html", "utf-8"))
-
-        with smtplib.SMTP(host, int(os.getenv("SMTP_PORT", 587)), timeout=10) as s:
-            s.starttls()
-            s.login(os.getenv("SMTP_USER", ""), os.getenv("SMTP_PASS", ""))
-            s.send_message(msg)
+        resend.Emails.send({
+            "from":    _resend_from(content),
+            "to":      [booking["email"]],
+            "subject": f"Annulation de votre visite – {content['site']['title']}",
+            "html":    html,
+        })
     except Exception as e:
         app.logger.warning(f"Cancellation email not sent: {e}")
 

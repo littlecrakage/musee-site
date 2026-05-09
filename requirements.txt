@@ -3,3 +3,4 @@ python-dotenv==1.0.1
 Werkzeug==3.0.3
 qrcode[pil]==7.4.2
 gunicorn==22.0.0
+resend
