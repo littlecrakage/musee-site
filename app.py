@@ -170,7 +170,7 @@ def send_confirmation_email(booking, qr_b64: str):
         img.add_header("Content-Disposition", "inline", filename="qrcode.png")
         msg.attach(img)
 
-        with smtplib.SMTP(host, int(os.getenv("SMTP_PORT", 587))) as s:
+        with smtplib.SMTP(host, int(os.getenv("SMTP_PORT", 587)), timeout=10) as s:
             s.starttls()
             s.login(os.getenv("SMTP_USER", ""), os.getenv("SMTP_PASS", ""))
             s.send_message(msg)
@@ -193,7 +193,7 @@ def send_cancellation_email(booking):
         msg["To"]      = booking["email"]
         msg.attach(MIMEText(html, "html", "utf-8"))
 
-        with smtplib.SMTP(host, int(os.getenv("SMTP_PORT", 587))) as s:
+        with smtplib.SMTP(host, int(os.getenv("SMTP_PORT", 587)), timeout=10) as s:
             s.starttls()
             s.login(os.getenv("SMTP_USER", ""), os.getenv("SMTP_PASS", ""))
             s.send_message(msg)
