@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Annulation — {{ c.site.title }}{% endblock %}
+
+{% block content %}
+<section class="success-page">
+  <div class="container">
+    <div class="success-card">
+
+      {% if not booking %}
+        <div class="success-bear">🐻</div>
+        <h1>Réservation introuvable</h1>
+        <p class="success-subtitle">Ce lien d'annulation est invalide ou a expiré.</p>
+        <a href="{{ url_for('index') }}" class="btn btn-primary btn-large">← Retour à l'accueil</a>
+
+      {% elif done and already %}
+        <div class="success-bear">🐻</div>
+        <h1>Déjà annulée</h1>
+        <p class="success-subtitle">Cette réservation a déjà été annulée.</p>
+        <div class="success-ref-badge">
+          <span class="success-ref-label">Numéro de réservation</span>
+          <span class="success-ref-code" style="text-decoration:line-through;opacity:.6;">{{ booking.reference }}</span>
+        </div>
+        <a href="{{ url_for('index') }}" class="btn btn-primary btn-large">← Retour à l'accueil</a>
+
+      {% elif done %}
+        <div class="success-bear">🐻</div>
+        <div class="success-check">❌</div>
+        <h1>Réservation annulée</h1>
+        <p class="success-subtitle">Votre réservation a été annulée. Un email de confirmation vous a été envoyé.</p>
+        <div class="success-ref-badge">
+          <span class="success-ref-label">Numéro de réservation</span>
+          <span class="success-ref-code" style="text-decoration:line-through;opacity:.6;">{{ booking.reference }}</span>
+        </div>
+        <div class="success-details">
+          <div class="success-detail">
+            <span class="detail-icon">📅</span>
+            <div><strong>{{ booking.visit_date }}</strong></div>
+          </div>
+          <div class="success-detail">
+            <span class="detail-icon">🕐</span>
+            <div><strong>{{ booking.time_slot }}</strong></div>
+          </div>
+          <div class="success-detail">
+            <span class="detail-icon">👥</span>
+            <div><strong>{{ booking.num_people }} personne{% if booking.num_people > 1 %}s{% endif %}</strong></div>
+          </div>
+        </div>
+        <p class="success-note">Vous pouvez effectuer une nouvelle réservation à tout moment.</p>
+        <a href="{{ url_for('index') + '#reserver' }}" class="btn btn-primary btn-large">
+          Faire une nouvelle réservation
+        </a>
+
+      {% else %}
+        <div class="success-bear">🐻</div>
+        <h1>Annuler ma réservation</h1>
+        <p class="success-subtitle">Êtes-vous sûr de vouloir annuler votre visite ?</p>
+
+        <div class="success-ref-badge">
+          <span class="success-ref-label">Numéro de réservation</span>
+          <span class="success-ref-code">{{ booking.reference }}</span>
+        </div>
+
+        <div class="success-details">
+          <div class="success-detail">
+            <span class="detail-icon">👤</span>
+            <div><strong>{{ booking.name }}</strong></div>
+          </div>
+          <div class="success-detail">
+            <span class="detail-icon">📅</span>
+            <div><strong>{{ booking.visit_date }}</strong></div>
+          </div>
+          <div class="success-detail">
+            <span class="detail-icon">🕐</span>
+            <div><strong>{{ booking.time_slot }}</strong></div>
+          </div>
+          <div class="success-detail">
+            <span class="detail-icon">👥</span>
+            <div><strong>{{ booking.num_people }} personne{% if booking.num_people > 1 %}s{% endif %}</strong></div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:1.5rem;">
+          <a href="{{ url_for('index') }}" class="btn btn-secondary btn-large">
+            ← Garder ma réservation
+          </a>
+          <form method="POST">
+            <button type="submit" class="btn btn-large"
+                    style="background:#c0392b;color:#fff;border:none;cursor:pointer;">
+              Confirmer l'annulation
+            </button>
+          </form>
+        </div>
+      {% endif %}
+
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Annulation de visite</title>
+</head>
+<body style="margin:0;padding:0;background:#F5E6C8;font-family:'Helvetica Neue',Arial,sans-serif;">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#F5E6C8;padding:32px 16px;">
+<tr><td align="center">
+
+  <table width="600" cellpadding="0" cellspacing="0"
+         style="max-width:600px;width:100%;background:#fff;border-radius:24px;
+                overflow:hidden;box-shadow:0 8px 32px rgba(92,46,0,0.15);">
+
+    <!-- HEADER -->
+    <tr>
+      <td style="background:linear-gradient(135deg,#6B3A1F 0%,#8B4513 50%,#A0522D 100%);
+                 padding:40px 32px 32px;text-align:center;">
+        <div style="font-size:56px;line-height:1;margin-bottom:12px;">🐻</div>
+        <h1 style="margin:0;font-size:26px;font-weight:900;color:#fff;
+                   letter-spacing:-0.5px;text-shadow:2px 3px 0 rgba(92,46,0,0.3);">
+          Réservation annulée
+        </h1>
+        <p style="margin:8px 0 0;font-size:15px;color:rgba(255,248,231,0.85);font-weight:600;">
+          {{ c.site.title }}
+        </p>
+      </td>
+    </tr>
+
+    <!-- REFERENCE BADGE -->
+    <tr>
+      <td style="background:#e8e8e8;padding:16px 32px;text-align:center;">
+        <p style="margin:0;font-size:11px;font-weight:800;color:#555;
+                  text-transform:uppercase;letter-spacing:0.1em;">
+          Réservation annulée
+        </p>
+        <p style="margin:4px 0 0;font-size:26px;font-weight:900;color:#555;
+                  font-family:'Courier New',monospace;letter-spacing:0.15em;
+                  text-decoration:line-through;">
+          {{ booking.reference }}
+        </p>
+      </td>
+    </tr>
+
+    <!-- BODY -->
+    <tr>
+      <td style="padding:32px;">
+
+        <p style="margin:0 0 24px;font-size:16px;color:#6B3A1F;line-height:1.6;">
+          Bonjour <strong>{{ booking.name }}</strong>,<br>
+          Votre réservation au <strong>{{ c.site.title }}</strong> a bien été annulée.
+        </p>
+
+        <!-- Details -->
+        <table width="100%" cellpadding="0" cellspacing="0"
+               style="background:#FFF8E7;border-radius:16px;overflow:hidden;margin-bottom:28px;">
+          <tr>
+            <td style="padding:16px 20px;border-bottom:2px solid #F5E6C8;">
+              <table width="100%" cellpadding="0" cellspacing="0"><tr>
+                <td style="font-size:24px;width:40px;">📅</td>
+                <td>
+                  <p style="margin:0;font-size:11px;font-weight:800;color:#A0522D;
+                             text-transform:uppercase;letter-spacing:0.08em;">Date</p>
+                  <p style="margin:2px 0 0;font-size:17px;font-weight:700;color:#3D1C02;">
+                    {{ booking.visit_date }}
+                  </p>
+                </td>
+              </tr></table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:16px 20px;border-bottom:2px solid #F5E6C8;">
+              <table width="100%" cellpadding="0" cellspacing="0"><tr>
+                <td style="font-size:24px;width:40px;">🕐</td>
+                <td>
+                  <p style="margin:0;font-size:11px;font-weight:800;color:#A0522D;
+                             text-transform:uppercase;letter-spacing:0.08em;">Créneau</p>
+                  <p style="margin:2px 0 0;font-size:17px;font-weight:700;color:#3D1C02;">
+                    {{ booking.time_slot }}
+                  </p>
+                </td>
+              </tr></table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:16px 20px;">
+              <table width="100%" cellpadding="0" cellspacing="0"><tr>
+                <td style="font-size:24px;width:40px;">👥</td>
+                <td>
+                  <p style="margin:0;font-size:11px;font-weight:800;color:#A0522D;
+                             text-transform:uppercase;letter-spacing:0.08em;">Visiteurs</p>
+                  <p style="margin:2px 0 0;font-size:17px;font-weight:700;color:#3D1C02;">
+                    {{ booking.num_people }} personne{% if booking.num_people > 1 %}s{% endif %}
+                  </p>
+                </td>
+              </tr></table>
+            </td>
+          </tr>
+        </table>
+
+        <p style="margin:0 0 16px;font-size:15px;color:#6B3A1F;line-height:1.7;">
+          Vous pouvez effectuer une nouvelle réservation à tout moment sur notre site.
+        </p>
+
+        <p style="margin:0;font-size:14px;color:#A0522D;line-height:1.7;">
+          À bientôt,<br>
+          <strong>L'équipe du {{ c.site.title }}</strong>
+        </p>
+
+      </td>
+    </tr>
+
+    <!-- FOOTER -->
+    <tr>
+      <td style="background:#5C2E00;padding:20px 32px;text-align:center;">
+        <p style="margin:0;font-size:12px;color:rgba(255,248,231,0.6);">
+          © {{ c.site.title }} — Réf. {{ booking.reference }}
+        </p>
+      </td>
+    </tr>
+
+  </table>
+
+</td></tr>
+</table>
+
+</body>
+</html>

@@ -151,8 +151,7 @@
       <!-- Filter tabs -->
       <div class="booking-tabs">
         <button class="btab active" data-filter="all">Toutes ({{ bookings|length }})</button>
-        <button class="btab" data-filter="pending">En attente ({{ bookings | selectattr('status','eq','pending') | list | length }})</button>
-        <button class="btab" data-filter="confirmed">Confirmées ({{ bookings | selectattr('status','eq','confirmed') | list | length }})</button>
+        <button class="btab" data-filter="active">Actives ({{ bookings | selectattr('status', 'ne', 'cancelled') | list | length }})</button>
         <button class="btab" data-filter="cancelled">Annulées ({{ bookings | selectattr('status','eq','cancelled') | list | length }})</button>
       </div>
 
@@ -173,7 +172,7 @@
           </thead>
           <tbody>
           {% for b in bookings %}
-          <tr class="booking-row" data-status="{{ b.status }}">
+          <tr class="booking-row" data-status="{{ 'active' if b.status != 'cancelled' else 'cancelled' }}">
             <td><code class="booking-ref-cell">{{ b.reference or '—' }}</code></td>
             <td><strong>{{ b.name }}</strong></td>
             <td>{{ b.visit_date }}</td>
@@ -186,21 +185,15 @@
             <td><small>{{ b.message or '—' }}</small></td>
             <td>
               <span class="status-badge status-{{ b.status }}">
-                {% if b.status == 'pending' %}⏳ En attente
-                {% elif b.status == 'confirmed' %}✅ Confirmée
-                {% else %}❌ Annulée{% endif %}
+                {% if b.status == 'cancelled' %}❌ Annulée
+                {% else %}✅ Confirmée{% endif %}
               </span>
             </td>
             <td class="booking-actions">
-              {% if b.status != 'confirmed' %}
-              <form method="POST" action="{{ url_for('admin_booking_status', booking_id=b.id) }}" style="display:inline">
-                <input type="hidden" name="status" value="confirmed"/>
-                <button class="btn-mini btn-confirm" title="Confirmer">✅</button>
-              </form>
-              {% endif %}
               {% if b.status != 'cancelled' %}
-              <form method="POST" action="{{ url_for('admin_booking_status', booking_id=b.id) }}" style="display:inline">
-                <input type="hidden" name="status" value="cancelled"/>
+              <form method="POST" action="{{ url_for('admin_booking_cancel', booking_id=b.id) }}"
+                    style="display:inline"
+                    onsubmit="return confirm('Annuler cette réservation et envoyer un email au visiteur ?')">
                 <button class="btn-mini btn-cancel" title="Annuler">❌</button>
               </form>
               {% endif %}
@@ -449,6 +442,8 @@
         });
       });
     });
+    // Trigger default filter on load
+    document.querySelector('.btab.active')?.click();
 
     // Upload zone drag & drop visual
     const zone = document.getElementById('uploadZone');

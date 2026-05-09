@@ -178,6 +178,29 @@ def send_confirmation_email(booking, qr_b64: str):
         app.logger.warning(f"Email not sent: {e}")
 
 
+def send_cancellation_email(booking):
+    """Send a cancellation notification email to the visitor."""
+    host = os.getenv("SMTP_HOST")
+    if not host:
+        return
+    try:
+        content = load_content()
+        html = render_template("email/cancellation.html", c=content, booking=booking)
+
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = f"Annulation de votre visite – {content['site']['title']}"
+        msg["From"]    = os.getenv("SMTP_FROM", os.getenv("SMTP_USER", ""))
+        msg["To"]      = booking["email"]
+        msg.attach(MIMEText(html, "html", "utf-8"))
+
+        with smtplib.SMTP(host, int(os.getenv("SMTP_PORT", 587))) as s:
+            s.starttls()
+            s.login(os.getenv("SMTP_USER", ""), os.getenv("SMTP_PASS", ""))
+            s.send_message(msg)
+    except Exception as e:
+        app.logger.warning(f"Cancellation email not sent: {e}")
+
+
 # ── Public routes ─────────────────────────────────────────────────────────────
 
 @app.route("/")
@@ -261,9 +284,9 @@ def booking():
 
         conn.execute(
             "INSERT INTO bookings "
-            "(reference,name,email,phone,visit_date,time_slot,num_people,message) "
-            "VALUES (?,?,?,?,?,?,?,?)",
-            (reference, name, email, phone, visit_date, time_slot, num_people, message)
+            "(reference,name,email,phone,visit_date,time_slot,num_people,message,status) "
+            "VALUES (?,?,?,?,?,?,?,?,?)",
+            (reference, name, email, phone, visit_date, time_slot, num_people, message, "confirmed")
         )
 
     # Build QR code encoding the reference
@@ -373,15 +396,43 @@ def admin_save():
     return redirect(url_for("admin_dashboard"))
 
 
+# ── Visitor cancellation ──────────────────────────────────────────────────────
+
+@app.route("/booking/cancel/<reference>", methods=["GET", "POST"])
+def booking_cancel(reference):
+    with get_db() as conn:
+        booking = conn.execute(
+            "SELECT * FROM bookings WHERE reference=?", (reference,)
+        ).fetchone()
+
+    content = load_content()
+    if not booking:
+        return render_template("cancel.html", c=content, booking=None)
+
+    booking = dict(booking)
+
+    if booking["status"] == "cancelled":
+        return render_template("cancel.html", c=content, booking=booking, done=True, already=True)
+
+    if request.method == "POST":
+        with get_db() as conn:
+            conn.execute("UPDATE bookings SET status='cancelled' WHERE reference=?", (reference,))
+        send_cancellation_email(booking)
+        return render_template("cancel.html", c=content, booking=booking, done=True, already=False)
+
+    return render_template("cancel.html", c=content, booking=booking, done=False)
+
+
 # ── Admin bookings ────────────────────────────────────────────────────────────
 
-@app.route("/admin/bookings/<int:booking_id>/status", methods=["POST"])
+@app.route("/admin/bookings/<int:booking_id>/cancel", methods=["POST"])
 @login_required
-def admin_booking_status(booking_id):
-    new_status = request.form.get("status")
-    if new_status in ("pending", "confirmed", "cancelled"):
-        with get_db() as conn:
-            conn.execute("UPDATE bookings SET status=? WHERE id=?", (new_status, booking_id))
+def admin_booking_cancel(booking_id):
+    with get_db() as conn:
+        booking = conn.execute("SELECT * FROM bookings WHERE id=?", (booking_id,)).fetchone()
+        if booking and booking["status"] != "cancelled":
+            conn.execute("UPDATE bookings SET status='cancelled' WHERE id=?", (booking_id,))
+            send_cancellation_email(dict(booking))
     return redirect(url_for("admin_dashboard") + "#section-bookings")
 
 
