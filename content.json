@@ -34,13 +34,13 @@
       "title": "Espace lecture",
       "text": "Retrouvez tous les albums de Petit Ours Brun dans notre coin lecture douillet.",
       "icon": "📚",
-      "visible": true
+      "visible": false
     },
     {
       "title": "Adapté aux tout-petits",
       "text": "Pensé pour les enfants de 1 à 6 ans, avec des espaces sécurisés et accessibles.",
       "icon": "🐻",
-      "visible": true
+      "visible": false
     }
   ],
   "booking": {
